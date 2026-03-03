@@ -1,32 +1,48 @@
-ㄒ center; min-height: 100vh; overflow-x: hidden; }
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日大挑戰</title>
+    <style>
+        :root { --primary-red: #ff4d4d; --bg-color: #1a1a1a; }
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            background: radial-gradient(circle, #2c3e50 0%, #000000 100%);
+            color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; 
+        }
         #timer-bar { width: 100%; background: #000; color: var(--primary-red); padding: 15px 0; text-align: center; font-size: 1.5rem; font-weight: bold; border-bottom: 2px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
         #hp-display { font-size: 1.2rem; margin: 20px 0; color: #ff9f43; }
-        #game-container { max-width: 500px; width: 90%; background: #2d2d2d; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-top: 20px; text-align: center; }
+        
+        #game-container { 
+            max-width: 500px; width: 90%; background: #2d2d2d; padding: 30px; border-radius: 10px; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(255, 77, 77, 0.2); 
+            margin-top: 20px; text-align: center; border: 1px solid var(--primary-red); backdrop-filter: blur(5px);
+        }
+        
         input { width: 80%; padding: 10px; margin: 20px 0; border: 1px solid #555; background: #111; color: #fff; border-radius: 5px; text-align: center; }
-        button { background: var(--primary-red); color: white; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        button { background: var(--primary-red); color: white; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; transition: 0.3s; }
+        button:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+        .progress-container { width: 80%; background: #444; height: 10px; border-radius: 5px; margin: 20px 0; }
+        #progress-bar { width: 0%; background: #2ecc71; height: 100%; border-radius: 5px; transition: 0.5s; box-shadow: 0 0 10px #2ecc71; }
+
         #secret-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; justify-content: center; align-items: center; }
-        #secret-overlay textarea { width: 80%; max-width: 400px; height: 150px; margin: 20px 0; background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; }
+        #secret-overlay textarea { width: 80%; max-width: 400px; height: 150px; margin: 20px 0; background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; border-radius: 10px; }
+        
         #explosion-screen { display: none; font-size: 2rem; color: var(--primary-red); text-align: center; margin-top: 100px; padding: 20px; }
         .celebrate-title { font-size: 3.5rem; color: #f1c40f; text-shadow: 0 0 20px #f39c12; margin-top: 50px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        body {
-            /* 漸層背景，營造深邃感 */
-            background: radial-gradient(circle, #2c3e50 0%, #000000 100%);
-            overflow-x: hidden;
-            }
-            
-            /* 讓遊戲容器看起來像發光的儀器 */
-            #game-container {
-                border: 1px solid var(--primary-red);
-                box-shadow: 0 0 15px rgba(255, 77, 77, 0.3), inset 0 0 10px rgba(255, 77, 77, 0.2);
-                backdrop-filter: blur(5px); /* 毛玻璃效果 */
-            }
     </style>
 </head>
 <body>
 
 <div id="timer-bar">偵測時間中...</div>
+
+<div class="progress-container">
+    <div id="progress-bar"></div>
+</div>
+
 <div id="hp-display">生命值：<span id="hearts"></span></div>
 
 <div id="game-container">
@@ -44,17 +60,144 @@
     <button onclick="revive()">使用秘密復活</button>
 </div>
 
-<div style="width: 80%; background: #444; height: 10px; border-radius: 5px; margin: 10px 0;">
-    <div id="progress-bar" style="width: 0%; background: #2ecc71; height: 100%; border-radius: 5px; transition: 0.5s;"></div>
-</div>
-    
 <div id="explosion-screen">💥 💣 💥<br>碰！明年再說。</div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
+    // --- Google 表單設定 ---
+    const GOOGLE_FORM_ID = "1FAIpQLSddOhLYf8FMGeqPKgtGRDKSE717MgHBNihkg9TVKlEbMUR1Ow"; 
+    const ID_STAGE = "entry.69781852";   
+    const ID_CONTENT = "entry.1022100511"; 
+
     let hp = 5;
     let currentStage = 0;
 
     const questions = [
         { q: "第一題：Albert 幾公分？(請輸入整數)", check: (a) => a.includes("174") },
+        { q: "第二題：我的鞋子大多是什麼顏色的？", check: (a) => a.includes("白") },
+        { q: "第三題：我不吃哪種口味的東西？", check: (a) => a.includes("辣") || a.includes("辛") },
+        { q: "第四題：我們去電影院看的那部電影是什麼？", check: (a) => a.includes("怪獸大學") },
+        { q: "第五題：我們去泰國住的飯店名稱是什麼？", check: (a) => a.includes("Novotel") || a.includes("NOVOTAL") || a.includes("novotal") },
+        { q: "第六題：我在電子系哪一組？", check: (a) => a.includes("晶片設計") || a.includes("IC設計") },
+        { q: "第七題：你給過我幾次生日禮物？", check: (a) => a.includes("5") },
+        { q: "第八題：國小教師節廣播我們唱哪首歌？", check: (a) => a.includes("師恩深一生深") },
+        { q: "第九題：你最近最常跟我講哪一句話？", check: (a) => a.includes("無語住了") },
+        { q: "第十題：明年我有生日禮物嗎？",  check: (a) => a.trim() === "有" }
+    ];
+
+    function reportToAlbert(stageName, userContent) {
+        const url = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse?${ID_STAGE}=${encodeURIComponent(stageName)}&${ID_CONTENT}=${encodeURIComponent(userContent)}&submit=Submit`;
+        fetch(url, { mode: 'no-cors' });
+    }
+
+    function init() {
+        const savedStage = localStorage.getItem('ArielBD_Stage');
+        if (savedStage !== null) currentStage = parseInt(savedStage);
+
+        const savedHP = localStorage.getItem('ArielBD_HP');
+        if (savedHP !== null) hp = parseInt(savedHP);
+
+        updateUI();
+        startTimer();
+    }
+
+    function updateUI() {
+        document.getElementById('hearts').innerHTML = '❤️'.repeat(Math.max(0, hp));
+        let progress = (currentStage / questions.length) * 100;
+        document.getElementById('progress-bar').style.width = progress + '%';
+
+        if (currentStage < questions.length) {
+            document.getElementById('question-number').innerText = `第 ${currentStage + 1} 關`;
+            document.getElementById('question-text').innerText = questions[currentStage].q;
+            document.getElementById('answer-input').value = "";
+        } else {
+            showWinScreen();
+        }
+    }
+
+    function checkAnswer() {
+        const input = document.getElementById('answer-input').value.trim();
+        if (input === "") return;
+
+        reportToAlbert(`第 ${currentStage + 1} 關`, input);
+
+        if (questions[currentStage].check(input)) {
+            currentStage++;
+            localStorage.setItem('ArielBD_Stage', currentStage);
+            updateUI();
+        } else {
+            hp--;
+            localStorage.setItem('ArielBD_HP', hp);
+            document.getElementById('hearts').innerHTML = '❤️'.repeat(Math.max(0, hp));
+            if (hp <= 0) {
+                document.getElementById('secret-overlay').style.display = 'flex';
+            } else {
+                alert("竟然錯了:( 生命值 -1");
+            }
+        }
+    }
+
+    function revive() {
+        const secret = document.getElementById('secret-input').value;
+        if (secret.length > 20) {
+            reportToAlbert("秘密交換復活", secret);
+            hp = 5;
+            localStorage.setItem('ArielBD_HP', hp);
+            document.getElementById('secret-overlay').style.display = 'none';
+            updateUI();
+            alert("秘密收到:))");
+        } else {
+            alert("秘密太短了，沒誠意!!");
+        }
+    }
+
+    function showWinScreen() {
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('timer-bar').style.color = "#2ecc71";
+        document.getElementById('timer-bar').innerText = "蓉蓉最棒了";
+        
+        const winDiv = document.createElement('div');
+        winDiv.style.textAlign = "center";
+        winDiv.style.padding = "20px";
+        winDiv.innerHTML = `
+            <h1 class="celebrate-title">Happy Birthday!</h1>
+            <p style="font-size: 1.2rem;">真蚌，不愧是我的好朋友！</p>
+            <img src="https://i.pinimg.com/originals/f6/83/fe/f683fe1434d5e8f58a2525b441a2905e.gif" width="250" style="border-radius:15px; margin-top:20px;">
+        `;
+        document.body.appendChild(winDiv);
+        triggerConfetti();
+    }
+
+    function startTimer() {
+        const timerElement = document.getElementById('timer-bar');
+        setInterval(() => {
+            const now = new Date();
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0); 
+            const diff = midnight - now;
+            if (diff <= 0 && currentStage < questions.length) {
+                document.getElementById('game-container').style.display = 'none';
+                document.getElementById('explosion-screen').style.display = 'block';
+                timerElement.innerText = "MISSION FAILED";
+                return;
+            }
+            const h = Math.floor(diff/3600000).toString().padStart(2,'0');
+            const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+            const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+            timerElement.innerText = `🚨 剩餘時間：${h}:${m}:${s}`;
+        }, 1000);
+    }
+
+    function triggerConfetti() {
+        const end = Date.now() + 5000;
+        (function frame() {
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+
+    window.onload = init;
+</script>
+</body>
 </html>
