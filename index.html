@@ -49,8 +49,14 @@
     const questions = [
         { q: "第一題：Albert 幾公分？(請輸入整數)", check: (a) => a.includes("174") },
         { q: "第二題：我的鞋子大多是什麼顏色的？", check: (a) => a.includes("白") },
-        { q: "第三題：我不吃哪種口味的東西？", check: (a) => a.includes("辣") || a.includes("辛") }
-        // 你可以依照此格式繼續增加題目...
+        { q: "第三題：我不吃哪種口味的東西？", check: (a) => a.includes("辣") || a.includes("辛") },
+        { q: "第四題：我們去電影院看的那部電影是什麼？", check: (a) => a.includes("怪獸大學") },
+        { q: "第五題：我們去泰國住的飯店名稱是什麼？", check: (a) => a.includes("Novotel") || a.includes("NOVOTAL") || a.includes("novotal") },
+        { q: "第六題：我在電子系哪一組？", check: (a) => a.includes("晶片設計") || a.includes("IC設計") },
+        { q: "第七題：你給過我幾次生日禮物？", check: (a) => a.includes("5") },
+        { q: "第八題：國小教師節廣播我們唱哪首歌？", check: (a) => a.includes("師恩深一生深") },
+        { q: "第九題：你最近最常跟我講哪一句話？", check: (a) => a.includes("無語住了") },
+        { q: "第十題：明年我有生日禮物嗎？",  check: (a) => a.trim() === "有" }
     ];
 
     function init() {
