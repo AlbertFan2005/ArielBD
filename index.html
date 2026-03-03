@@ -3,68 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>生日大挑戰</title>
+    <title>⚡ Mission: ArielBD ⚡</title>
     <style>
-        :root { --primary-red: #ff4d4d; --bg-color: #1a1a1a; }
-        body { 
-            font-family: 'Courier New', Courier, monospace; 
-            background: radial-gradient(circle, #2c3e50 0%, #000000 100%);
-            color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; 
+        :root { 
+            --neon-red: #ff3131; 
+            --neon-green: #39ff14; 
+            --neon-gold: #fff01f;
+            --bg-dark: #050505;
         }
-        #timer-bar { width: 100%; background: #000; color: var(--primary-red); padding: 15px 0; text-align: center; font-size: 1.5rem; font-weight: bold; border-bottom: 2px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
-        #hp-display { font-size: 1.2rem; margin: 20px 0; color: #ff9f43; }
         
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow-x: hidden; background: var(--bg-dark); font-family: 'Courier New', Courier, monospace; }
+
+        /* 動態畫布背景 */
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; }
+
+        /* 霓虹計時器 */
+        #timer-bar { 
+            width: 100%; background: rgba(0,0,0,0.8); color: var(--neon-red); padding: 15px 0; 
+            text-align: center; font-size: 1.6rem; font-weight: bold; 
+            border-bottom: 2px solid var(--neon-red);
+            box-shadow: 0 0 15px var(--neon-red);
+            text-shadow: 0 0 10px var(--neon-red);
+            position: sticky; top: 0; z-index: 100;
+        }
+
+        /* 霓虹生命值與進度條 */
+        #hp-display { font-size: 1.4rem; margin: 15px 0; color: #fff; text-shadow: 0 0 10px var(--neon-red); }
+        .progress-container { width: 85%; background: #222; height: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
+        #progress-bar { width: 0%; background: var(--neon-green); height: 100%; border-radius: 10px; transition: 0.5s; box-shadow: 0 0 15px var(--neon-green); }
+
+        /* 遊戲容器：毛玻璃 + 霓虹邊框 */
         #game-container { 
-            max-width: 500px; width: 90%; background: #2d2d2d; padding: 30px; border-radius: 10px; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(255, 77, 77, 0.2); 
-            margin-top: 20px; text-align: center; border: 1px solid var(--primary-red); backdrop-filter: blur(5px);
+            max-width: 500px; width: 90%; background: rgba(20, 20, 20, 0.7); padding: 30px; 
+            border-radius: 15px; border: 1px solid var(--neon-green); 
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px rgba(57, 255, 20, 0.2);
+            text-align: center; margin-top: 10px;
         }
-        
-        input { width: 80%; padding: 10px; margin: 20px 0; border: 1px solid #555; background: #111; color: #fff; border-radius: 5px; text-align: center; }
-        button { background: var(--primary-red); color: white; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; transition: 0.3s; }
-        button:hover { transform: scale(1.05); filter: brightness(1.2); }
 
-        .progress-container { width: 80%; background: #444; height: 10px; border-radius: 5px; margin: 20px 0; }
-        #progress-bar { width: 0%; background: #2ecc71; height: 100%; border-radius: 5px; transition: 0.5s; box-shadow: 0 0 10px #2ecc71; }
+        h2 { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
+        p { font-size: 1.1rem; line-height: 1.6; color: #eee; }
 
+        input { 
+            width: 80%; padding: 12px; margin: 20px 0; border: 1px solid var(--neon-green); 
+            background: rgba(0,0,0,0.6); color: var(--neon-green); border-radius: 5px; 
+            text-align: center; font-size: 1.1rem; outline: none;
+            box-shadow: inset 0 0 5px var(--neon-green);
+        }
+
+        button { 
+            background: transparent; color: var(--neon-red); border: 2px solid var(--neon-red);
+            padding: 10px 30px; cursor: pointer; font-weight: bold; border-radius: 5px; 
+            font-size: 1rem; transition: 0.3s; text-shadow: 0 0 5px var(--neon-red);
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+        button:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 25px var(--neon-red); }
+
+        /* 復活遮罩 */
         #secret-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; justify-content: center; align-items: center; }
-        #secret-overlay textarea { width: 80%; max-width: 400px; height: 150px; margin: 20px 0; background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; border-radius: 10px; }
+        textarea { width: 80%; max-width: 400px; height: 150px; background: #000; color: var(--neon-green); border: 1px solid var(--neon-green); padding: 15px; border-radius: 10px; box-shadow: 0 0 15px var(--neon-green); }
         
-        #explosion-screen { display: none; font-size: 2rem; color: var(--primary-red); text-align: center; margin-top: 100px; padding: 20px; }
-        .celebrate-title { font-size: 3.5rem; color: #f1c40f; text-shadow: 0 0 20px #f39c12; margin-top: 50px; animation: bounce 1s infinite; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .celebrate-title { font-size: 3.5rem; color: var(--neon-gold); text-shadow: 0 0 20px var(--neon-gold); margin-top: 50px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
     </style>
 </head>
 <body>
 
-<div id="timer-bar">偵測時間中...</div>
-
-<div class="progress-container">
-    <div id="progress-bar"></div>
-</div>
-
-<div id="hp-display">生命值：<span id="hearts"></span></div>
+<canvas id="bg-canvas"></canvas>
+<div id="timer-bar">INITIALIZING...</div>
+<div class="progress-container"><div id="progress-bar"></div></div>
+<div id="hp-display">INTEGRITY: <span id="hearts"></span></div>
 
 <div id="game-container">
-    <h2 id="question-number">載入中...</h2>
-    <p id="question-text">正在讀取存檔...</p>
-    <input type="text" id="answer-input" placeholder="輸入答案後按 Enter" onkeypress="if(event.keyCode==13) checkAnswer()">
+    <h2 id="question-number">LEVEL --</h2>
+    <p id="question-text">SYSTEM BOOTING...</p>
+    <input type="text" id="answer-input" placeholder="ENTER KEY..." onkeypress="if(event.keyCode==13) checkAnswer()">
     <br>
-    <button onclick="checkAnswer()">提交答案</button>
+    <button onclick="checkAnswer()">EXECUTE</button>
 </div>
 
 <div id="secret-overlay">
-    <h2 style="color: var(--primary-red);">💀 生命值歸零 💀</h2>
-    <p>告訴我一個我不知道的祕密來復活</p>
-    <textarea id="secret-input" placeholder="寫下你的秘密..."></textarea>
-    <button onclick="revive()">使用秘密復活</button>
+    <h2 style="color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);">💀 CRITICAL FAILURE 💀</h2>
+    <p>UPLOAD SECRET TO REBOOT SYSTEM</p>
+    <textarea id="secret-input" placeholder="Type your secret here..."></textarea>
+    <br>
+    <button onclick="revive()" style="color: var(--neon-green); border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green);">UPLOAD & REVIVE</button>
 </div>
-
-<div id="explosion-screen">💥 💣 💥<br>碰！明年再說。</div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    // --- Google 表單設定 ---
+    // --- Google 表單與題目設定 (沿用你之前的設定) ---
     const GOOGLE_FORM_ID = "1FAIpQLSddOhLYf8FMGeqPKgtGRDKSE717MgHBNihkg9TVKlEbMUR1Ow"; 
     const ID_STAGE = "entry.69781852";   
     const ID_CONTENT = "entry.1022100511"; 
@@ -73,8 +101,8 @@
     let currentStage = 0;
 
     const questions = [
-        { q: "第一題：Albert 幾公分？(請輸入整數)", check: (a) => a.includes("174") },
-        { q: "第二題：我的鞋子大多是什麼顏色的？", check: (a) => a.includes("白") },
+        { q: "第一題：我幾公分？", check: (a) => a.includes("174") },
+        { q: "第二題：我的鞋子都是什麼顏色的？", check: (a) => a.includes("白") },
         { q: "第三題：我不吃哪種口味的東西？", check: (a) => a.includes("辣") || a.includes("辛") },
         { q: "第四題：我們去電影院看的那部電影是什麼？", check: (a) => a.includes("怪獸大學") },
         { q: "第五題：我們去泰國住的飯店名稱是什麼？", check: (a) => a.includes("Novotel") || a.includes("NOVOTAL") || a.includes("novotal") },
@@ -85,116 +113,110 @@
         { q: "第十題：明年我有生日禮物嗎？",  check: (a) => a.trim() === "有" }
     ];
 
-    function reportToAlbert(stageName, userContent) {
-        const url = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse?${ID_STAGE}=${encodeURIComponent(stageName)}&${ID_CONTENT}=${encodeURIComponent(userContent)}&submit=Submit`;
-        fetch(url, { mode: 'no-cors' });
+    // --- 動態背景星空邏輯 ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function initCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        particles = [];
+        for(let i=0; i<100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5
+            });
+        }
+    }
+    function drawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(57, 255, 20, 0.5)";
+        particles.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+            ctx.fill();
+            p.x += p.vx; p.y += p.vy;
+            if(p.x<0 || p.x>canvas.width) p.vx *= -1;
+            if(p.y<0 || p.y>canvas.height) p.vy *= -1;
+        });
+        requestAnimationFrame(drawCanvas);
+    }
+    window.addEventListener('resize', initCanvas);
+
+    // --- 遊戲邏輯 ---
+    function reportToAlbert(s, c) {
+        fetch(`https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse?${ID_STAGE}=${encodeURIComponent(s)}&${ID_CONTENT}=${encodeURIComponent(c)}&submit=Submit`, {mode:'no-cors'});
     }
 
     function init() {
-        const savedStage = localStorage.getItem('ArielBD_Stage');
-        if (savedStage !== null) currentStage = parseInt(savedStage);
-
-        const savedHP = localStorage.getItem('ArielBD_HP');
-        if (savedHP !== null) hp = parseInt(savedHP);
-
+        initCanvas(); drawCanvas();
+        const s = localStorage.getItem('ArielBD_Stage');
+        const h = localStorage.getItem('ArielBD_HP');
+        if(s !== null) currentStage = parseInt(s);
+        if(h !== null) hp = parseInt(h);
         updateUI();
         startTimer();
     }
 
     function updateUI() {
         document.getElementById('hearts').innerHTML = '❤️'.repeat(Math.max(0, hp));
-        let progress = (currentStage / questions.length) * 100;
-        document.getElementById('progress-bar').style.width = progress + '%';
-
+        document.getElementById('progress-bar').style.width = (currentStage/questions.length)*100 + '%';
         if (currentStage < questions.length) {
-            document.getElementById('question-number').innerText = `第 ${currentStage + 1} 關`;
+            document.getElementById('question-number').innerText = `LEVEL ${currentStage + 1}`;
             document.getElementById('question-text').innerText = questions[currentStage].q;
             document.getElementById('answer-input').value = "";
         } else {
-            showWinScreen();
+            showWin();
         }
     }
 
     function checkAnswer() {
         const input = document.getElementById('answer-input').value.trim();
-        if (input === "") return;
-
-        reportToAlbert(`第 ${currentStage + 1} 關`, input);
-
-        if (questions[currentStage].check(input)) {
+        if(!input) return;
+        reportToAlbert(`Level ${currentStage+1}`, input);
+        if(questions[currentStage].check(input)) {
             currentStage++;
             localStorage.setItem('ArielBD_Stage', currentStage);
             updateUI();
         } else {
             hp--;
             localStorage.setItem('ArielBD_HP', hp);
-            document.getElementById('hearts').innerHTML = '❤️'.repeat(Math.max(0, hp));
-            if (hp <= 0) {
-                document.getElementById('secret-overlay').style.display = 'flex';
-            } else {
-                alert("竟然錯了:( 生命值 -1");
-            }
+            updateUI();
+            if(hp <= 0) document.getElementById('secret-overlay').style.display='flex';
+            else alert("❌ ACCESS DENIED: 生命值 -1");
         }
     }
 
     function revive() {
         const secret = document.getElementById('secret-input').value;
-        if (secret.length > 20) {
-            reportToAlbert("秘密交換復活", secret);
-            hp = 5;
-            localStorage.setItem('ArielBD_HP', hp);
-            document.getElementById('secret-overlay').style.display = 'none';
+        if(secret.length > 20) {
+            reportToAlbert("SECRET_REVIVE", secret);
+            hp = 5; localStorage.setItem('ArielBD_HP', hp);
+            document.getElementById('secret-overlay').style.display='none';
             updateUI();
-            alert("秘密收到:))");
-        } else {
-            alert("秘密太短了，沒誠意!!");
-        }
-    }
-
-    function showWinScreen() {
-        document.getElementById('game-container').style.display = 'none';
-        document.getElementById('timer-bar').style.color = "#2ecc71";
-        document.getElementById('timer-bar').innerText = "蓉蓉最棒了";
-        
-        const winDiv = document.createElement('div');
-        winDiv.style.textAlign = "center";
-        winDiv.style.padding = "20px";
-        winDiv.innerHTML = `
-            <h1 class="celebrate-title">Happy Birthday!</h1>
-            <p style="font-size: 1.2rem;">真蚌，不愧是我的好朋友！</p>
-            <img src="https://i.pinimg.com/originals/f6/83/fe/f683fe1434d5e8f58a2525b441a2905e.gif" width="250" style="border-radius:15px; margin-top:20px;">
-        `;
-        document.body.appendChild(winDiv);
-        triggerConfetti();
+            alert("✅ SYSTEM REBOOTED");
+        } else { alert("SECRET TOO SHORT!"); }
     }
 
     function startTimer() {
-        const timerElement = document.getElementById('timer-bar');
         setInterval(() => {
-            const now = new Date();
-            const midnight = new Date();
-            midnight.setHours(24, 0, 0, 0); 
-            const diff = midnight - now;
-            if (diff <= 0 && currentStage < questions.length) {
-                document.getElementById('game-container').style.display = 'none';
-                document.getElementById('explosion-screen').style.display = 'block';
-                timerElement.innerText = "MISSION FAILED";
-                return;
-            }
+            const diff = new Date().setHours(24,0,0,0) - new Date();
+            if(diff <= 0) { document.body.innerHTML="<h1>SYSTEM TERMINATED</h1>"; return; }
             const h = Math.floor(diff/3600000).toString().padStart(2,'0');
             const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
             const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
-            timerElement.innerText = `🚨 剩餘時間：${h}:${m}:${s}`;
+            document.getElementById('timer-bar').innerText = `🚨 SELF-DESTRUCT IN: ${h}:${m}:${s}`;
         }, 1000);
     }
 
-    function triggerConfetti() {
-        const end = Date.now() + 5000;
-        (function frame() {
-            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
-            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
-            if (Date.now() < end) requestAnimationFrame(frame);
-        }());
+    function showWin() {
+        document.getElementById('game-container').innerHTML = `<h1 class="celebrate-title">Happy Birthday!</h1><p>Mission Accomplished.</p><img src="https://i.pinimg.com/originals/f6/83/fe/f683fe1434d5e8f58a2525b441a2905e.gif" width="250">`;
+        document.getElementById('timer-bar').style.color = "var(--neon-green)";
+        document.getElementById('timer-bar').innerText = "✅ STATUS: SECURE";
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
 
     window.onload = init;
