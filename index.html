@@ -3,239 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚠️ 限時解謎任務 ⚠️</title>
+    <title>⚠️ ArielBD ⚠️</title>
     <style>
-        :root {
-            --primary-red: #ff4d4d;
-            --bg-color: #1a1a1a;
-        }
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: var(--bg-color);
-            color: #fff;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        /* 頂端計時器 */
-        #timer-bar {
-            width: 100%;
-            background: #000;
-            color: var(--primary-red);
-            padding: 15px 0;
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-bottom: 2px solid var(--primary-red);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        /* 生命值顯示 */
-        #hp-display {
-            font-size: 1.2rem;
-            margin: 20px 0;
-            color: #ff9f43;
-        }
-        .heart { color: var(--primary-red); margin: 0 2px; }
-
-        /* 遊戲容器 */
-        #game-container {
-            max-width: 500px;
-            width: 90%;
-            background: #2d2d2d;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            margin-top: 20px;
-            text-align: center;
-        }
-        input {
-            width: 80%;
-            padding: 10px;
-            margin: 20px 0;
-            border: 1px solid #555;
-            background: #111;
-            color: #fff;
-            border-radius: 5px;
-        }
-        button {
-            background: var(--primary-red);
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            cursor: pointer;
-            font-weight: bold;
-            border-radius: 5px;
-        }
-        button:hover { opacity: 0.8; }
-
-        /* 秘密復活視窗 */
-        #secret-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 200;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        #secret-overlay textarea {
-            width: 80%; max-width: 400px; height: 150px;
-            margin: 20px 0; background: #222; color: #0f0; border: 1px solid #0f0;
-            padding: 10px; font-family: sans-serif;
-        }
-
-        /* 爆炸畫面 */
-        #explosion-screen {
-            display: none;
-            font-size: 3rem;
-            color: var(--primary-red);
-            text-align: center;
-            margin-top: 100px;
-        }
+        :root { --primary-red: #ff4d4d; --bg-color: #1a1a1a; }
+        body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg-color); color: #fff; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        #timer-bar { width: 100%; background: #000; color: var(--primary-red); padding: 15px 0; text-align: center; font-size: 1.5rem; font-weight: bold; border-bottom: 2px solid var(--primary-red); position: sticky; top: 0; z-index: 100; }
+        #hp-display { font-size: 1.2rem; margin: 20px 0; color: #ff9f43; }
+        #game-container { max-width: 500px; width: 90%; background: #2d2d2d; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); margin-top: 20px; text-align: center; }
+        input { width: 80%; padding: 10px; margin: 20px 0; border: 1px solid #555; background: #111; color: #fff; border-radius: 5px; text-align: center; }
+        button { background: var(--primary-red); color: white; border: none; padding: 10px 25px; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        #secret-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; justify-content: center; align-items: center; }
+        #secret-overlay textarea { width: 80%; max-width: 400px; height: 150px; margin: 20px 0; background: #222; color: #0f0; border: 1px solid #0f0; padding: 10px; }
+        #explosion-screen { display: none; font-size: 2rem; color: var(--primary-red); text-align: center; margin-top: 100px; padding: 20px; }
+        .celebrate-title { font-size: 3.5rem; color: #f1c40f; text-shadow: 0 0 20px #f39c12; margin-top: 50px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
 <body>
 
-<div id="timer-bar">載入計時器...</div>
-
+<div id="timer-bar">偵測時間中...</div>
 <div id="hp-display">生命值：<span id="hearts"></span></div>
 
 <div id="game-container">
     <h2 id="question-number">載入中...</h2>
-    <p id="question-text">正在準備題目...</p>
-    <input type="text" id="answer-input" placeholder="請輸入答案..." onkeypress="if(event.keyCode==13) checkAnswer()">
+    <p id="question-text">正在讀取存檔...</p>
+    <input type="text" id="answer-input" placeholder="輸入答案後按 Enter" onkeypress="if(event.keyCode==13) checkAnswer()">
     <br>
     <button onclick="checkAnswer()">提交答案</button>
 </div>
 
 <div id="secret-overlay">
     <h2 style="color: var(--primary-red);">💀 生命值歸零 💀</h2>
-    <p>輸入一個 Albert 不知道的秘密來復活生命</p>
+    <p>書唷個我不知道的祕密來復活</p>
     <textarea id="secret-input" placeholder="寫下你的秘密..."></textarea>
     <button onclick="revive()">交換秘密並復活</button>
 </div>
 
-<div id="explosion-screen">
-    💥 💣 💥<br>
-    時間到！炸彈已爆炸。<br>
-    <span style="font-size: 1rem;">任務失敗，請明年再試。</span>
-</div>
+<div id="explosion-screen">💥 💣 💥<br>碰！明年再說。</div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <script>
-    // --- 遊戲設定 ---
     let hp = 5;
     let currentStage = 0;
+
     const questions = [
-        {
-            q: "第一題：Albert 幾公分？(請輸入整數)",
-            check: (a) => a.includes("174")
-        },
-        {
-            q: "第二題：我的鞋子大多是什麼顏色的？",
-            check: (a) => a.includes("白")
-        },
-        {
-            q: "第三題：我不吃哪種口味的東西？",
-            check: (a) => a.includes("辣") || a.includes("辛")
-        }
+        { q: "第一題：Albert 幾公分？(請輸入整數)", check: (a) => a.includes("174") },
+        { q: "第二題：我的鞋子大多是什麼顏色的？", check: (a) => a.includes("白") },
+        { q: "第三題：我不吃哪種口味的東西？", check: (a) => a.includes("辣") || a.includes("辛") }
+        // 你可以依照此格式繼續增加題目...
     ];
 
-    // --- 初始化 ---
     function init() {
+        // 讀取存檔
+        const savedStage = localStorage.getItem('ArielBD_Stage');
+        if (savedStage !== null) currentStage = parseInt(savedStage);
+
+        const savedHP = localStorage.getItem('ArielBD_HP');
+        if (savedHP !== null) hp = parseInt(savedHP);
+
         updateHPDisplay();
-        showQuestion();
+        showQuestion(); // 這裡就是你要的韓式（函式）
         startTimer();
     }
 
-    // --- 計時器邏輯 ---
     function startTimer() {
         const timerElement = document.getElementById('timer-bar');
-        
-        function update() {
+        const update = () => {
             const now = new Date();
             const midnight = new Date();
-            midnight.setHours(24, 0, 0, 0); // 設定為今晚 12 點
-            
+            midnight.setHours(24, 0, 0, 0); 
             const diff = midnight - now;
             
-            if (diff <= 0) {
+            if (diff <= 0 && currentStage < questions.length) {
                 document.getElementById('game-container').style.display = 'none';
                 document.getElementById('explosion-screen').style.display = 'block';
-                timerElement.innerText = "已爆炸 💥";
+                timerElement.innerText = "MISSION FAILED";
                 return;
             }
-
-            const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-            const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-            const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-            
-            timerElement.innerText = `🚨 炸彈倒數：${h}:${m}:${s}`;
-        }
-        
+            const h = Math.floor(diff/3600000).toString().padStart(2,'0');
+            const m = Math.floor((diff%3600000)/60000).toString().padStart(2,'0');
+            const s = Math.floor((diff%60000)/1000).toString().padStart(2,'0');
+            timerElement.innerText = `🚨 剩餘時間：${h}:${m}:${s}`;
+        };
         setInterval(update, 1000);
         update();
     }
 
-    // --- 生命值邏輯 ---
     function updateHPDisplay() {
-        const heartContainer = document.getElementById('hearts');
-        heartContainer.innerHTML = '❤️'.repeat(hp);
+        document.getElementById('hearts').innerHTML = '❤️'.repeat(Math.max(0, hp));
     }
 
-    // --- 題目控制 ---
     function showQuestion() {
         if (currentStage < questions.length) {
             document.getElementById('question-number').innerText = `第 ${currentStage + 1} 關`;
             document.getElementById('question-text').innerText = questions[currentStage].q;
             document.getElementById('answer-input').value = "";
         } else {
-            // 通關大結局
-            document.getElementById('game-container').innerHTML = "<h1>🎉 恭喜通關！</h1><p>炸彈已拆除。Albert 祝你生日快樂！</p>";
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            // 通關畫面
+            document.getElementById('game-container').style.display = 'none';
+            document.getElementById('timer-bar').style.color = "#2ecc71";
+            document.getElementById('timer-bar').innerText = "差點來不及";
+            
+            document.body.innerHTML += `
+                <div style="text-align:center; padding: 20px;">
+                    <h1 class="celebrate-title">Happy Birthday!</h1>
+                    <p>真蚌</p>
+                    <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJmZzB5ZnI1ZzJyeGZ5Z2xyeGZ5Z2xyeGZ5Z2xyeGZ5Z2xyeGZ5JnV0bT13ZWI_L2dpZg/L1f3uDxvXwM7J0v2z8/giphy.gif" width="250">
+                </div>
+            `;
+            triggerConfetti();
         }
     }
 
     function checkAnswer() {
-        const userInput = document.getElementById('answer-input').value.trim();
-        if (userInput === "") return;
+        const input = document.getElementById('answer-input').value.trim();
+        if (input === "") return;
 
-        if (questions[currentStage].check(userInput)) {
-            alert("答對了！");
+        if (questions[currentStage].check(input)) {
             currentStage++;
+            localStorage.setItem('ArielBD_Stage', currentStage);
             showQuestion();
         } else {
             hp--;
+            localStorage.setItem('ArielBD_HP', hp);
             updateHPDisplay();
-            if (hp <= 0) {
-                document.getElementById('secret-overlay').style.display = 'flex';
-            } else {
-                alert("答錯了！生命值 -1");
-            }
+            if (hp <= 0) document.getElementById('secret-overlay').style.display = 'flex';
+            else alert("竟然錯了:( 生命值 -1");
         }
     }
 
-    // --- 復活邏輯 ---
     function revive() {
         const secret = document.getElementById('secret-input').value;
-        if (secret.length > 5) {
+        if (secret.length > 20) {
             hp = 5;
+            localStorage.setItem('ArielBD_HP', hp);
             updateHPDisplay();
             document.getElementById('secret-overlay').style.display = 'none';
-            document.getElementById('secret-input').value = "";
-            alert("Albert 已收到你的秘密... 生命值已重置！");
+            alert("秘密收到:))");
         } else {
-            alert("這也算秘密？再多寫一點（至少 5 個字）！");
+            alert("秘密太短了，沒誠意!!");
         }
+    }
+
+    function triggerConfetti() {
+        const end = Date.now() + 5000;
+        (function frame() {
+            confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 } });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
     }
 
     window.onload = init;
 </script>
-
 </body>
 </html>
